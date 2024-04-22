@@ -1,3 +1,5 @@
+/* Query to select all of a user's reservations */
+
 SELECT reservations.id, properties.title, properties.cost_per_night, reservations.start_date, avg(rating) as average_rating
 FROM reservations
 JOIN properties ON reservations.property_id = properties.id
