@@ -172,6 +172,8 @@ const getAllProperties = function (options, limit = 10) {
  * @param {{}} property An object containing all of the property details.
  * @return {Promise<{}>} A promise to the property.
  */
+
+// Deconstruct property object to extract correct values
 const addProperty = function (property) {
   const {
     owner_id,
@@ -190,6 +192,7 @@ const addProperty = function (property) {
     number_of_bedrooms
   } = property;
 
+  // Insert values
   return pool
     .query(
       `INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms) 
@@ -212,11 +215,11 @@ const addProperty = function (property) {
       ]
     )
     .then((result) => {
-      return result.rows[0]; // Return the saved property
+      return result.rows[0]; 
     })
     .catch((err) => {
       console.error("Error adding property:", err.message);
-      throw err; // Rethrow the error to handle it at the caller's level
+      throw err; 
     });
 };
 
