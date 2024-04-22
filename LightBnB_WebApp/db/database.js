@@ -56,8 +56,10 @@ const getUserWithId = function(id) {
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser = function (user) {
+  // Deconstruct user object to extract correct values
   const { name, email, password } = user;
   
+  // Insert values to add a new user to database
   return pool
     .query(
       `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *`,
@@ -192,7 +194,7 @@ const addProperty = function (property) {
     number_of_bedrooms
   } = property;
 
-  // Insert values
+  // Insert values to add property to database
   return pool
     .query(
       `INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms) 
