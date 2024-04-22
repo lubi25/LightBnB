@@ -109,16 +109,63 @@ const getAllReservations = function (guest_id, limit = 10) {
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 
-const getAllProperties = (options, limit = 10) => {
-  return pool
-    .query(`SELECT * FROM properties LIMIT $1`, [limit])
-    .then((result) => {
-      return result.rows;
-    })
-    .catch((err) => {
-      console.log(err.message);
-    });
+const getAllProperties = function (options, limit = 10) {
+  const queryParams = [];
+
+  let queryString = `
+  SELECT properties.*, avg(property_reviews.rating) as average_rating
+  FROM properties
+  LEFT JOIN property_reviews ON properties.id = property_reviews.property_id
+  `;
+  // Initialize an array to hold parts of the WHERE clause
+  const whereClauses = [];
+
+  // Check if city filter provided
+  if (options.city) {
+    queryParams.push(`%${options.city}%`);
+    whereClauses.push(`city LIKE $${queryParams.length}`);
+  }
+
+  // Check if owner_id filter provided
+  if (options.owner_id) {
+    queryParams.push(options.owner_id);
+    whereClauses.push(`properties.owner_id = $${queryParams.length}`);
+  }
+
+  // Check if minimum/maximum price filters are provided
+  if (options.minimum_price_per_night) {
+    queryParams.push(Number(options.minimum_price_per_night) * 100);
+    whereClauses.push(`cost_per_night >= $${queryParams.length}`);
+  }
+
+  if (options.maximum_price_per_night) {
+    queryParams.push(Number(options.maximum_price_per_night) * 100);
+    whereClauses.push(`cost_per_night <= $${queryParams.length}`);
+  }
+
+  if (whereClauses.length > 0) {
+    queryString += "WHERE " + whereClauses.join(" AND ");
+  }
+
+  queryString += `
+  GROUP BY properties.id`;
+
+  // Check if minimum rating filter is provided
+  if (options.minimum_rating) {
+    queryParams.push(Number(options.minimum_rating));
+    queryString += ` HAVING avg(property_reviews.rating) >= $${queryParams.length}`;
+  }
+
+  queryString += `
+  ORDER BY cost_per_night
+  LIMIT $${queryParams.push(limit)};
+  `;
+
+  console.log(queryString, queryParams);
+
+  return pool.query(queryString, queryParams).then((res) => res.rows);
 };
+
 
 /**
  * Add a property to the database
